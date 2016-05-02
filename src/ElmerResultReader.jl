@@ -38,13 +38,11 @@ Populates elmervar array from results given in ```filename```.
 Works only with 1 timestep currently.
 """
 function readelmervars(filename)
-#=using elmer_parsing=#
   totaldofmatch(x) = x[1:12] == " Total DOFs:"
 
   charmatch(x,y) = x[1] == y
   commentmatch(x) = charmatch(x,'!')
 
-  #=ms_t1 = open("./ms_t1.result")=#
   ms_t1 = open(filename)
   readmatch(ms_t1, x -> x == " ASCII 3\n")
   readmatch(ms_t1, commentmatch)
@@ -95,4 +93,5 @@ function readelmervars(filename)
   return elmervars
 
 end
-end
+
+end # module ElmerResultReader
