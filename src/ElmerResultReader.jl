@@ -65,32 +65,52 @@ function readelmervars(filename)
   readmatch(line, x -> " Number Of Nodes" == x[1:16])
   nnodes = parse(Int64, match(r".+:\s*(\d*)", line).captures[1])
 
-  readmatch(ms_t1, x -> "Time:" == x[1:5])
 
-  elmervars = []
-  perm = []
-  prev_ndof = 0
-  for dof in dofdata
-    line = readline(ms_t1)
-    readmatch(line, x -> ismatch(Regex(dof[1]), line))
-    line = readline(ms_t1)
-    readmatch(line, x-> x[1:5] == "Perm:")
-    if (!ismatch(r"use previous", line))
-      prev_ndof = parse(Int64, match(r".+:\s*\d+\s+(\d+)",line).captures[1])
-      dof[2] = prev_ndof
+  t_elmervars = []
+
+  while (true)
+    try
+      readmatch(ms_t1, x -> "Time:" == x[1:5])
+    catch readmatch_error
+      if isa(readmatch_error, ParseError) 
+        print(readmatch_error.msg)
+        break
+      else
+        if isa(readmatch_error, BoundsError)
+          print("Got boundserror, exiting")
+          break
+        end
+      end
+    end
+
+    elmervars = []
+    perm = []
+    prev_ndof = 0
+    for dof in dofdata
+      line = readline(ms_t1)
+      readmatch(line, x -> ismatch(Regex(dof[1]), line), error_msg="Error: $(line)")
+      line = readline(ms_t1)
+      readmatch(line, x-> x[1:5] == "Perm:")
+      if (!ismatch(r"use previous", line))
+        prev_ndof = parse(Int64, match(r".+:\s*\d+\s+(\d+)",line).captures[1])
+        dof[2] = prev_ndof
+        lines = readnlines(ms_t1, dof[2])
+        seekstart(lines)
+        perm = readdlm(lines, Int64)
+      else
+        dof[2] = prev_ndof
+      end
       lines = readnlines(ms_t1, dof[2])
       seekstart(lines)
-      perm = readdlm(lines, Int64)
-    else
-      dof[2] = prev_ndof
+      vals = readdlm(lines, Float64)
+      push!(elmervars, elmervar(perm, dof[2:4], vals, dof[1]))
     end
-    lines = readnlines(ms_t1, dof[2])
-    seekstart(lines)
-    vals = readdlm(lines, Float64)
-    push!(elmervars, elmervar(perm, dof[2:4], vals, dof[1]))
+
+    push!(t_elmervars, elmervars)
+    print("$(length(elmervars))\n")
   end
 
-  return elmervars
+  return t_elmervars
 
 end
 
