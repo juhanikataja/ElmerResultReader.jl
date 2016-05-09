@@ -24,12 +24,12 @@ end
 
 function readnlines(data::IOStream, n::Integer)
   outbuf = IOBuffer()
-  print("reading $(n) lines\n")
+  #=print("reading $(n) lines\n")=#
   for i = 1:n
     line = readline(data)
     write(outbuf, line)
   end
-  print("ok\n")
+  #=print("ok\n")=#
   return outbuf
 end
 
@@ -37,7 +37,8 @@ end
 Populates elmervar array from results given in ```filename```.
 Works only with 1 timestep currently.
 """
-function readelmervars(filename)
+function readelmervars(filename; verbose=1)
+  verbose > 1 ? print("Reading variables from $(filename)\n") : Union{}
   totaldofmatch(x) = x[1:12] == " Total DOFs:"
 
   charmatch(x,y) = x[1] == y
@@ -70,18 +71,21 @@ function readelmervars(filename)
 
   while (true)
     try
-      readmatch(ms_t1, x -> "Time:" == x[1:5])
+      line = readline(ms_t1)
+      readmatch(line, x -> "Time:" == x[1:5])
     catch readmatch_error
       if isa(readmatch_error, ParseError) 
         print(readmatch_error.msg)
         break
       else
         if isa(readmatch_error, BoundsError)
-          print("Got boundserror, exiting")
+          verbose > 2 ? print("Did not find next timestep, exiting\n") : Union{}
           break
         end
       end
     end
+    timestep_n = parse(Int64, match(r"^Time:\s*(\d+)\s*(\d+)\s*", line).captures[1])
+    verbose>0 ? print("Reading timestep $(timestep_n)") : Union{}
 
     elmervars = []
     perm = []
@@ -104,10 +108,11 @@ function readelmervars(filename)
       seekstart(lines)
       vals = readdlm(lines, Float64)
       push!(elmervars, elmervar(perm, dof[2:4], vals, dof[1]))
+      verbose > 0 ? print(".") : Union{}
     end
 
     push!(t_elmervars, elmervars)
-    print("$(length(elmervars))\n")
+    verbose > 0 ? print(" Read $(length(elmervars)) variables.\n") : print(".\n")
   end
 
   return t_elmervars
