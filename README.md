@@ -1,17 +1,17 @@
 # ElmerResultReader
 
-Elmer ```.result``` -file reader for julia.
+Elmer `.result` -file reader for julia.
 
 ## Usage
 
-julia```
+```julia
 using ElmerResultReader
 
 res = readelmervars(filename)
 ```
 
-Now julia```res``` is an array containing Elmer variables that are found in the
-julia```filename```.
+Now `res` is an array containing Elmer variables that are found in the
+`filename`.
 
 ## Features and caveats
 
