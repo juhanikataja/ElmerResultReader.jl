@@ -1,22 +1,23 @@
 # ElmerResultReader
 
-Elmer `.result` -file reader for julia.
+Elmer `.result` and `.dat` -file readers for julia.
 
 ## Usage
 
 ```julia
 using ElmerResultReader
 
-res = readelmervars(filename)
+res = readelmervars(resfilename)
+dat = readelmerdat(datname, NPROC=1, DICT=false)
 ```
 
 Now `res` is an array containing Elmer variables that are found in the
-`filename`.
+`resfilename` and `dat` contains data saved with savescalars
 
 ## Features and caveats
 
 * Supports ASCII 3 format
-* One timestep is only supported
+
 
 
 

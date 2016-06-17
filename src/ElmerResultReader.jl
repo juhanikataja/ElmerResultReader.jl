@@ -1,6 +1,6 @@
 module ElmerResultReader
 
-export elmervar, readelmervars
+export elmervar, readelmervars, readelmerdat
 
 type elmervar
   perm::Array{Int64,2}
@@ -34,6 +34,8 @@ function readnlines(data::IOStream, n::Integer)
 end
 
 """
+function readelmervars(filename; verbose=1)
+
 Populates elmervar array from results given in ```filename```.
 Works only with 1 timestep currently.
 """
@@ -119,4 +121,31 @@ function readelmervars(filename; verbose=1)
 
 end
 
+"""
+function readelmerdat(name, NPROC=1, DICT=false)
+Reads .dat file generated with savescalars
+"""
+function readelmerdat(name, NPROC=1, DICT=false)
+  datas = Array[]
+  if NPROC > 1
+    for N = 1:NPROC
+      push!(datas, readdlm("$name.$(N-1)"))
+    end
+  else
+    push!(datas, readdlm(name))
+  end
+  desc = open(readlines, "$name.names")[4:end]
+  desc = map(strip, desc)
+  if DICT
+    datasum = sum(datas)
+    datadict = Dict{ASCIIString, Array{Float64,1}}()
+    k = 1
+    for s in desc
+      datadict[s] = datasum[:,k]
+      k = k + 1
+    end
+    return datasum, desc, datadict
+  end
+  return sum(datas), desc
+end
 end # module ElmerResultReader
