@@ -152,10 +152,12 @@ end
 
 
 @doc """
-#### Loads elmer linear system that is saved with SaveLinearSystem.
+function readlinearsystem(prefix; suffix="")
+
+Loads elmer linear system that is saved with SaveLinearSystem.
 
 * Output: A::SparseMatrixCSC{Float64, Int64}, b::Array{Float64,1}
-* Input: prefix: determine the prefix of the linear system .dat files
+* Input: read data from <prefix>_a.dat and <prefix>_b.dat
 """ ->
 function readlinearsystem(prefix; suffix="")
   ri = x -> round(Int64, x)
