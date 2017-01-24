@@ -1,6 +1,6 @@
 module ElmerResultReader
 
-export elmervar, readelmervars, readelmerdat
+export elmervar, readelmervars, readelmerdat, readlinearsystem
 
 type elmervar
   perm::Array{Int64,2}
@@ -33,12 +33,12 @@ function readnlines(data::IOStream, n::Integer)
   return outbuf
 end
 
-"""
+@doc """
 function readelmervars(filename; verbose=1)
 
 Populates elmervar array from results given in ```filename```.
 Works only with 1 timestep currently.
-"""
+""" ->
 function readelmervars(filename; verbose=1)
   verbose > 1 ? print("Reading variables from $(filename)\n") : Union{}
   totaldofmatch(x) = x[1:12] == " Total DOFs:"
@@ -121,10 +121,10 @@ function readelmervars(filename; verbose=1)
 
 end
 
-"""
+@doc """
 function readelmerdat(name, NPROC=1, DICT=false)
 Reads .dat file generated with savescalars
-"""
+""" ->
 function readelmerdat(name, NPROC=1, DICT=false)
   datas = Array[]
   if NPROC > 1
@@ -148,4 +148,22 @@ function readelmerdat(name, NPROC=1, DICT=false)
   end
   return sum(datas), desc
 end
+
+
+
+@doc """
+#### Loads elmer linear system that is saved with SaveLinearSystem.
+
+* Output: A::SparseMatrixCSC{Float64, Int64}, b::Array{Float64,1}
+* Input: prefix: determine the prefix of the linear system .dat files
+""" ->
+function readlinearsystem(prefix; suffix="")
+  ri = x -> round(Int64, x)
+  Alist = readdlm(string(prefix, "_a.dat", suffix))
+  blist = readdlm(string(prefix, "_b.dat", suffix))
+  A = sparse(ri(Alist[:,1]), ri(Alist[:,2]), Alist[:,3])
+  b = blist[:,2]
+  return A,b
+end
+
 end # module ElmerResultReader
